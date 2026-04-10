@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Rotating Hearts</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        body { 
+            margin: 0; padding: 0; overflow: hidden; 
+            background: #120a2a url('img/ozadje.jpg') no-repeat center center fixed; 
+            background-size: cover; font-family: 'Segoe UI', sans-serif; 
+            height: 100vh; display: flex; flex-direction: column; 
+        }
+        #main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 0 40px; gap: 50px; }
+        #side-info { width: 350px; display: flex; flex-direction: column; align-items: center; }
+        #vmesnik { 
+            background: rgba(25, 10, 50, 0.85); padding: 20px 30px 40px 30px; 
+            border-radius: 20px; color: white; text-align: center; width: 100%; 
+            box-shadow: 0 0 20px rgba(181, 109, 255, 0.3); 
+            border: 1px solid rgba(181, 109, 255, 0.4); backdrop-filter: blur(5px); 
+        }
+        #naslov { color: #b56dff; font-size: 40px; font-family: "Orbitron", sans-serif; text-shadow: 0 0 10px #8A2BE2, 0 0 20px #b56dff; margin-bottom: 30px; letter-spacing: 2px; }
+        .stat-row { font-size: 22px; margin: 15px 0; font-family: "Orbitron", sans-serif; }
+        #cas-box { border: 1px solid #FF69B4; color: #FF69B4; background: rgba(0,0,0,0.5); padding: 5px 15px; border-radius: 8px; display: inline-block; min-width: 80px; }
+        #tocke-box { border: 1px solid #00d4ff; color: #00d4ff; background: rgba(0,0,0,0.5); padding: 5px 15px; border-radius: 8px; display: inline-block; min-width: 80px; }
+        
+        #controls { margin-top: 30px; display: flex; flex-direction: column; gap: 15px; }
+
+        .btn { 
+            padding: 12px 25px; 
+            font-size: 18px; 
+            font-family: "Orbitron", sans-serif; 
+            font-weight: bold; 
+            background: transparent; 
+            border-radius: 30px; 
+            cursor: pointer; 
+            transition: all 0.3s ease; 
+            text-transform: uppercase; 
+            outline: none; 
+            border: 2px solid;
+        }
+
+        #btn-start { border-color: #b56dff; color: #b56dff; }
+        #btn-start:hover { background: #b56dff; color: white; box-shadow: 0 0 15px #b56dff; transform: translateY(-2px); }
+
+        #btn-stop { border-color: #00d4ff; color: #00d4ff; }
+        #btn-stop:hover { background: #00d4ff; color: #120a2a; box-shadow: 0 0 15px #00d4ff; transform: translateY(-2px); }
+
+        #btn-end { border-color: #FF69B4; color: #FF69B4; }
+        #btn-end:hover { background: #FF69B4; color: white; box-shadow: 0 0 15px #FF69B4; transform: translateY(-2px); }
+
+        #canvas-wrapper { 
+            padding: 20px; 
+            background: rgba(181, 109, 255, 0.1); 
+            border-radius: 30px; 
+            display: none; 
+        }
+        
+        #canvas { display: block; background: hsl(250, 25%, 12%); border: 4px solid hsl(300, 70%, 55%); cursor: none; border-radius: 20px; box-shadow: 0 0 30px rgba(0, 0, 0, 0.5); }
+    </style>
+
+    <script type="application/javascript">
+        var ctx, canvas, WIDTH, HEIGHT, intervalId, timerId;
+        var x, y, dx, dy, r, paddlex;
+        var paddleh = 20, paddlew = 200;
+        var bricks, NROWS = 4, NCOLS = 12, BRICKWIDTH, BRICKHEIGHT, PADDING = 15;
+        var OFFSET = 20; // 20px odmika od roba
+        var gameRunning = false, sekunde = 0, tocke = 0, izpisTimer = "00:00";
+        
+        var crystalImages = {};
+        var loadedImages = 0;
+        const totalImages = 4;
+
+        function loadImages() {
+            for (let i = 1; i <= totalImages; i++) {
+                let img = new Image();
+                img.src = 'img_srce/s' + i + '.png';
+                img.onload = function() {
+                    loadedImages++;
+                };
+                crystalImages[i] = img;
+            }
+        }
+
+        const swalCustom = { 
+            background: 'rgba(25, 10, 50, 0.95)', 
+            color: '#fff', 
+            confirmButtonColor: '#8A2BE2', 
+            backdrop: 'rgba(0,0,0,0.8)', 
+            iconColor: '#FF69B4' 
+        };
+
+        function drawIt() {
+            canvas = document.getElementById('canvas'); 
+            ctx = canvas.getContext('2d');
+            WIDTH = window.innerWidth - 800; 
+            HEIGHT = window.innerHeight - 200;
+            canvas.width = WIDTH; 
+            canvas.height = HEIGHT;
+
+            // Prilagoditev širine opek, da upoštevamo 2x OFFSET (levo in desno)
+            BRICKWIDTH = ((WIDTH - (2 * OFFSET)) / NCOLS) - PADDING; 
+            BRICKHEIGHT = BRICKWIDTH; 
+            
+            x = WIDTH / 2; y = HEIGHT - 100; dx = 3; dy = -5; r = 10;
+            paddlex = WIDTH / 2 - paddlew / 2;
+
+            initbricks();
+            loadImages();
+            
+            $(document).mousemove(function(e) {
+                if(!gameRunning) return;
+                var relativeX = e.pageX - $(canvas).offset().left;
+                if (relativeX > paddlew / 2 && relativeX < WIDTH - paddlew / 2) { 
+                    paddlex = relativeX - paddlew / 2; 
+                }
+            });
+        }
+
+        function initbricks() {
+            bricks = new Array(NROWS);
+            for (var i = 0; i < NROWS; i++) {
+                bricks[i] = new Array(NCOLS);
+                for (var j = 0; j < NCOLS; j++) {
+                    bricks[i][j] = { status: Math.floor(Math.random() * 4) + 1 };
+                }
+            }
+        }
+
+        function drawbricks() {
+            for (var i = 0; i < NROWS; i++) {
+                for (var j = 0; j < NCOLS; j++) {
+                    var b = bricks[i][j];
+                    if (b.status > 0) {
+                        // Dodan OFFSET k poziciji
+                        var bx = j * (BRICKWIDTH + PADDING) + PADDING + OFFSET;
+                        var by = i * (BRICKHEIGHT + PADDING) + PADDING + OFFSET;
+                        
+                        ctx.save();
+                        ctx.translate(bx + BRICKWIDTH / 2, by + BRICKHEIGHT / 2);
+                        var angle = (b.status - 1) * 90 * Math.PI / 180;
+                        ctx.rotate(angle);
+                        
+                        var img = crystalImages[b.status];
+                        if (img) {
+                            ctx.drawImage(img, -BRICKWIDTH / 2, -BRICKHEIGHT / 2, BRICKWIDTH, BRICKHEIGHT);
+                        }
+                        ctx.restore();
+                    }
+                }
+            }
+        }
+
+        function drawStatic() {
+            ctx.clearRect(0, 0, WIDTH, HEIGHT);
+            drawbricks();
+            ctx.fillStyle = "#8A2BE2";
+            ctx.beginPath();
+            ctx.roundRect(paddlex, HEIGHT - paddleh, paddlew, paddleh, 10);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.fillStyle = "#FF69B4";
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, WIDTH, HEIGHT);
+            drawbricks();
+            
+            ctx.beginPath(); 
+            ctx.fillStyle = "#FF69B4"; 
+            ctx.arc(x, y, r, 0, Math.PI * 2); 
+            ctx.fill();
+            
+            ctx.beginPath(); 
+            ctx.fillStyle = "#8A2BE2"; 
+            ctx.roundRect(paddlex, HEIGHT - paddleh, paddlew, paddleh, 10); 
+            ctx.fill();
+
+            var hit = false;
+            for (var i = 0; i < NROWS; i++) {
+                for (var j = 0; j < NCOLS; j++) {
+                    var b = bricks[i][j];
+                    if (b.status > 0) {
+                        // Tudi tu upoštevamo OFFSET za pravilno zaznavanje trkov
+                        var bx = j * (BRICKWIDTH + PADDING) + PADDING + OFFSET;
+                        var by = i * (BRICKHEIGHT + PADDING) + PADDING + OFFSET;
+                        
+                        if (x + r > bx && x - r < bx + BRICKWIDTH && y + r > by && y - r < by + BRICKHEIGHT) {
+                            dy = -dy;
+                            b.status -= 1; 
+                            tocke++; 
+                            $("#tocke").html(tocke);
+                            hit = true;
+                            break; 
+                        }
+                    }
+                }
+                if (hit) break;
+            }
+
+            if (x + dx > WIDTH - r || x + dx < r) dx = -dx;
+            if (y + dy < r) dy = -dy;
+            else if (y + dy > HEIGHT - r - paddleh) {
+                if (x > paddlex && x < paddlex + paddlew) {
+                    dy = -dy;
+                    dx = 8 * ((x - (paddlex + paddlew / 2)) / paddlew); 
+                } else if (y + dy > HEIGHT - r) { 
+                    gameOver();
+                }
+            }
+            x += dx; y += dy;
+        }
+
+        function startGame() { 
+            if (!gameRunning) { 
+                $("#canvas-wrapper").show();
+                drawStatic(); 
+                gameRunning = true; 
+                intervalId = setInterval(draw, 10); 
+                timerId = setInterval(posodobiTimer, 1000); 
+            } 
+        }
+
+        function stopGame() { 
+            gameRunning = false; 
+            clearInterval(intervalId); 
+            clearInterval(timerId); 
+        }
+
+        function posodobiTimer() { 
+            sekunde++; 
+            var s = (sekunde % 60).toString().padStart(2, '0');
+            var m = Math.floor(sekunde / 60).toString().padStart(2, '0');
+            izpisTimer = m + ":" + s; 
+            $("#cas").html(izpisTimer); 
+        }
+
+        function gameOver() { 
+            stopGame(); 
+            Swal.fire({ ...swalCustom, title: 'Game ended', html: `Points: ${tocke}<br>Time: ${izpisTimer}`, icon: 'error' }).then(() => { location.reload(); }); 
+        }
+
+        function endGame() { 
+            stopGame(); 
+            Swal.fire({ ...swalCustom, title: 'Finished', html: `Points: ${tocke}<br>Time: ${izpisTimer}`, icon: 'info' }).then(() => { location.reload(); }); 
+        }
+    </script>
+</head>
+<body onload="drawIt()">
+    <div id="main">
+        <div id="side-info">
+            <div id="vmesnik">
+                <div id="naslov">LEVEL 2</div>
+                <div class="stat-row">TIME: <span id="cas-box"><span id="cas">00:00</span></span></div>
+                <div class="stat-row">POINTS: <span id="tocke-box"><span id="tocke">0</span></span></div>
+                <div id="controls">
+                    <button id="btn-start" class="btn" onclick="startGame()">Start</button>
+                    <button id="btn-stop" class="btn" onclick="stopGame()">Stop</button>
+                    <button id="btn-end" class="btn" onclick="endGame()">End Game</button>
+                </div>
+            </div>
+        </div>
+        <div id="canvas-wrapper">
+            <canvas id="canvas"></canvas>
+        </div>
+    </div>
+</body>
+</html>
