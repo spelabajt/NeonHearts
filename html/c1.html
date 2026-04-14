@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hearts Mission - Level 1</title>
+	<link rel="icon" href="img/icon.png">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        body { 
+            margin: 0; padding: 0; overflow: hidden; 
+            background: #120a2a url('img/ozadje.jpg') no-repeat center center fixed; 
+            background-size: cover; font-family: 'Segoe UI', sans-serif; 
+            height: 100vh; display: flex; flex-direction: column; 
+        }
+
+        #main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 0 40px; gap: 50px; }
+        #side-info { width: 350px; display: flex; flex-direction: column; align-items: center; }
+        #vmesnik { 
+            background: rgba(25, 10, 50, 0.85); padding: 20px 30px 40px 30px; 
+            border-radius: 20px; color: white; text-align: center; width: 100%; 
+            box-shadow: 0 0 20px rgba(181, 109, 255, 0.3); 
+            border: 1px solid rgba(181, 109, 255, 0.4); backdrop-filter: blur(5px); 
+        }
+
+        #naslov { color: #b56dff; font-size: 40px; font-family: "Orbitron", sans-serif; text-shadow: 0 0 10px #8A2BE2, 0 0 20px #b56dff; margin-bottom: 30px; letter-spacing: 2px; }
+        .stat-row { font-size: 22px; margin: 15px 0; font-family: "Orbitron", sans-serif; }
+        #cas-box { border: 1px solid #FF69B4; color: #FF69B4; background: rgba(0,0,0,0.5); padding: 5px 15px; border-radius: 8px; display: inline-block; min-width: 80px; }
+        #tocke-box { border: 1px solid #00d4ff; color: #00d4ff; background: rgba(0,0,0,0.5); padding: 5px 15px; border-radius: 8px; display: inline-block; min-width: 80px; }
+        
+        #controls { margin-top: 30px; display: flex; flex-direction: column; gap: 15px; }
+        .btn { padding: 12px 25px; font-size: 18px; font-family: "Orbitron", sans-serif; font-weight: bold; background: transparent; border: 2px solid #b56dff; color: #b56dff; border-radius: 30px; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; outline: none; }
+        .btn:hover { background: #b56dff; color: white; box-shadow: 0 0 15px #b56dff; transform: translateY(-2px); }
+        
+        #btn-stop { border-color: #00d4ff; color: #00d4ff; }
+        #btn-stop:hover { background: #00d4ff; color: #120a2a; }
+        #btn-end { border-color: #FF69B4; color: #FF69B4; }
+        #btn-end:hover { background: #FF69B4; color: white; }
+
+        .btn-green { border-color: #2ecc71; color: #2ecc71; }
+        .btn-green:hover { background: #2ecc71; color: #120a2a; box-shadow: 0 0 15px #2ecc71; }
+        .button-row { display: flex; gap: 10px; width: 100%; }
+        .button-row .btn { flex: 1; padding: 10px 5px; font-size: 14px; }
+
+        #canvas-wrapper { padding: 20px; background: rgba(181, 109, 255, 0.1); border-radius: 30px; display: none; align-items: center; justify-content: center; }
+        #canvas { display: block; background: hsl(250, 25%, 12%); border: 4px solid hsl(300, 70%, 55%); cursor: none; border-radius: 20px; box-shadow: 0 0 30px rgba(0, 0, 0, 0.5); }
+    </style>
+
+<script type="application/javascript">
+        var ctx, canvas, WIDTH, HEIGHT, intervalId, timerId;
+        var x, y, dx, dy, r, paddlex;
+        var paddleh = 15, paddlew = 200; 
+        var bricks, NROWS = 4, NCOLS = 12, BRICKWIDTH, BRICKHEIGHT, PADDING = 10;
+        var OFFSET = 20;
+        var gameRunning = false, sekunde = 0, tocke = 0, izpisTimer = "00:00";
+        
+        var rightPressed = false;
+        var leftPressed = false;
+
+        var crystalImages = [];
+        var imageLoadedCount = 0;
+        var totalImages = 5;
+
+        for (var i = 1; i <= totalImages; i++) {
+            var img = new Image();
+            img.src = 'img_srce/s' + i + '.png';
+            img.onload = function() { imageLoadedCount++; };
+            crystalImages.push(img);
+        }
+
+        const swalCustom = { 
+            background: 'rgba(25, 10, 50, 0.95)', 
+            color: '#fff', 
+            confirmButtonColor: '#8A2BE2', 
+            backdrop: 'rgba(0,0,0,0.8)', 
+            iconColor: '#FF69B4' 
+        };
+
+        function drawIt() {
+            var vx = window.innerWidth - 800; 
+            var vy = window.innerHeight - 200;
+            x = vx / 2; y = vy - 150; dx = 2; dy = -4; r = 10;
+            canvas = document.getElementById('canvas'); 
+            ctx = canvas.getContext('2d');
+            canvas.width = vx; 
+            canvas.height = vy; 
+            WIDTH = canvas.width; 
+            HEIGHT = canvas.height;
+            BRICKWIDTH = ((WIDTH - 2 * OFFSET) / NCOLS) - PADDING; 
+            BRICKHEIGHT = BRICKWIDTH; 
+            paddlex = WIDTH / 2 - paddlew / 2;
+            initbricks();
+            
+            $(document).mousemove(function(e) {
+                if(!gameRunning) return;
+                var relativeX = e.pageX - $(canvas).offset().left;
+                if (relativeX > paddlew / 2 && relativeX < WIDTH - paddlew / 2) { 
+                    paddlex = relativeX - paddlew / 2; 
+                }
+            });
+
+            // Poslušalci za tipkovnico (Enter in Space dodana tukaj)
+            $(document).keydown(function(e) {
+                if (e.keyCode == 39) rightPressed = true;
+                else if (e.keyCode == 37) leftPressed = true;
+                else if (e.keyCode == 13) startGame(); // ENTER tipka
+                else if (e.keyCode == 32) { // SPACE tipka
+                    e.preventDefault(); // Prepreči scroll strani
+                    if (gameRunning) stopGame();
+                    else startGame();
+                }
+            });
+            $(document).keyup(function(e) {
+                if (e.keyCode == 39) rightPressed = false;
+                else if (e.keyCode == 37) leftPressed = false;
+            });
+        }
+
+        function initbricks() {
+            bricks = new Array(NROWS);
+            for (var i = 0; i < NROWS; i++) {
+                bricks[i] = new Array(NCOLS);
+                for (var j = 0; j < NCOLS; j++) { 
+                    var imgIndex = Math.floor(Math.random() * crystalImages.length);
+                    bricks[i][j] = { status: 1, img: crystalImages[imgIndex] }; 
+                }
+            }
+        }
+
+        function drawbricks() {
+            for (var i = 0; i < NROWS; i++) {
+                for (var j = 0; j < NCOLS; j++) {
+                    if (bricks[i][j].status == 1) {
+                        var bx = OFFSET + j * (BRICKWIDTH + PADDING);
+                        var by = OFFSET + i * (BRICKHEIGHT + PADDING);
+                        ctx.drawImage(bricks[i][j].img, bx, by, BRICKWIDTH, BRICKHEIGHT);
+                    }
+                }
+            }
+        }
+
+        function drawStatic() {
+            ctx.clearRect(0, 0, WIDTH, HEIGHT);
+            drawbricks();
+            ctx.beginPath(); 
+            ctx.fillStyle = "#FF69B4"; 
+            ctx.arc(x, y, r, 0, Math.PI * 2); 
+            ctx.fill();
+            ctx.beginPath(); 
+            ctx.fillStyle = "#8A2BE2"; 
+            ctx.roundRect(paddlex, HEIGHT - paddleh, paddlew, paddleh, 10); 
+            ctx.fill();
+        }
+
+        function draw() {
+            if (rightPressed && paddlex < WIDTH - paddlew) {
+                paddlex += 8;
+            } else if (leftPressed && paddlex > 0) {
+                paddlex -= 8;
+            }
+
+            ctx.clearRect(0, 0, WIDTH, HEIGHT);
+            drawbricks();
+            ctx.beginPath(); 
+            ctx.fillStyle = "#FF69B4"; 
+            ctx.arc(x, y, r, 0, Math.PI * 2); 
+            ctx.fill();
+            ctx.beginPath(); 
+            ctx.fillStyle = "#8A2BE2"; 
+            ctx.roundRect(paddlex, HEIGHT - paddleh, paddlew, paddleh, 10); 
+            ctx.fill();
+
+            var hit = false;
+            for (var i = 0; i < NROWS; i++) {
+                for (var j = 0; j < NCOLS; j++) {
+                    var b = bricks[i][j];
+                    if (b.status == 1) {
+                        var bx = OFFSET + j * (BRICKWIDTH + PADDING);
+                        var by = OFFSET + i * (BRICKHEIGHT + PADDING);
+                        if (x + r > bx && x - r < bx + BRICKWIDTH && y + r > by && y - r < by + BRICKHEIGHT) {
+                            dy = -dy;
+                            b.status = 0; 
+                            tocke++; 
+                            $("#tocke").html(tocke);
+                            if (preveriZmago()) { winGame(); return; }
+                            hit = true;
+                            break;
+                        }
+                    }
+                }
+                if (hit) break;
+            }
+
+            if (x + dx > WIDTH - r || x + dx < r) dx = -dx;
+            if (y + dy < r) dy = -dy;
+            else if (y + dy > HEIGHT - r - paddleh) {
+                if (x > paddlex && x < paddlex + paddlew) {
+                    dx = 8 * ((x - (paddlex + paddlew / 2)) / paddlew); 
+                    dy = -dy;
+                } else if (y + dy > HEIGHT - r) { 
+                    gameOver();
+                }
+            }
+            x += dx; y += dy;
+        }
+
+        function startGame() { 
+            if (imageLoadedCount < totalImages) return;
+            if (!gameRunning) { 
+                $("#canvas-wrapper").css("display", "flex"); 
+                drawStatic(); 
+                gameRunning = true; 
+                intervalId = setInterval(draw, 7); 
+                timerId = setInterval(posodobiTimer, 1000); 
+            } 
+        }
+
+        function stopGame() { 
+            gameRunning = false; 
+            clearInterval(intervalId); 
+            clearInterval(timerId); 
+        }
+        
+        function posodobiTimer() { 
+            sekunde++; 
+            var s = (sekunde % 60).toString().padStart(2, '0');
+            var m = Math.floor(sekunde / 60).toString().padStart(2, '0');
+            izpisTimer = m + ":" + s; 
+            $("#cas").html(izpisTimer); 
+        }
+        
+        function gameOver() { 
+            stopGame(); 
+            Swal.fire({ ...swalCustom, title: 'Game ended', html: `Points: <span style="color:#00d4ff">${tocke}</span><br>Time: <span style="color:#FF69B4">${izpisTimer}</span>`, icon: 'error', confirmButtonText: 'Try Again' }).then(() => { location.reload(); }); 
+        }
+        
+        function winGame() {
+            stopGame();
+            Swal.fire({ ...swalCustom, title: 'YOU WON!', html: `Points: <span style="color:#00d4ff">${tocke}</span><br>Time: <span style="color:#FF69B4">${izpisTimer}</span>`, icon: 'success', confirmButtonText: 'Next Level' }).then(() => { window.location.href = 'c2.html'; });
+        }
+
+        function endGame() { 
+            stopGame(); 
+            Swal.fire({ ...swalCustom, title: 'Game ended', html: `Points: <span style="color:#00d4ff">${tocke}</span><br>Time: <span style="color:#FF69B4">${izpisTimer}</span>`, icon: 'info', confirmButtonText: 'Restart' }).then(() => { location.reload(); }); 
+        }
+
+        function preveriZmago() {
+            for (var i = 0; i < NROWS; i++) {
+                for (var j = 0; j < NCOLS; j++) {
+                    if (bricks[i][j].status == 1) return false;
+                }
+            }
+            return true;
+        }
+
+        function showInstructions() {
+            Swal.fire({
+                ...swalCustom,
+                title: 'INSTRUCTIONS',
+                icon: 'info',
+                iconColor: '#2ecc71',
+                html: `
+                    <div style="text-align: left; font-size: 16px; line-height: 1.6;">
+                        * Move the <b>paddle</b> with your mouse or <b>arrow keys</b>.<br>
+                        * Press <b>ENTER</b> to start the game.<br>
+                        * Press <b>SPACE</b> to pause or continue.<br>
+                        * Bounce the ball to destroy all <b>crystal hearts</b>.<br>
+                        * Don't let the ball fall below the paddle!<br>
+                        <span id="secret-credit" style="cursor: pointer;">* Clear the screen to advance to the next level.</span>
+                    </div>`,
+                confirmButtonText: 'Got it!',
+                confirmButtonColor: '#2ecc71',
+                didOpen: () => {
+                    document.getElementById('secret-credit').addEventListener('click', () => {
+                        Swal.fire({
+                            ...swalCustom,
+                            title: 'Developer',
+                            text: 'Špela Bajt',
+                            icon: 'success',
+                            iconColor: '#2ecc71',
+                            confirmButtonColor: '#2ecc71'
+                        });
+                    });
+                }
+            });
+        }
+    </script>
+</head>
+<body onload="drawIt()">
+    <div id="main">
+        <div id="side-info">
+            <div id="vmesnik">
+                <div id="naslov">LEVEL 1</div>
+                <div class="stat-row">TIME: <span id="cas-box"><span id="cas">00:00</span></span></div>
+                <div class="stat-row">POINTS: <span id="tocke-box"><span id="tocke">0</span></span></div>
+                <div id="controls">
+                    <button id="btn-start" class="btn" onclick="startGame()">Start</button>
+                    <button id="btn-stop" class="btn" onclick="stopGame()">Stop</button>
+                    <button id="btn-end" class="btn" onclick="endGame()">End Game</button>
+                    
+                    <div class="button-row">
+                        <button class="btn btn-green" onclick="window.location.href='index.html'">Home</button>
+                        <button class="btn btn-green" onclick="showInstructions()">Instructions</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="canvas-wrapper">
+            <canvas id="canvas"></canvas>
+        </div>
+    </div>
+</body>
+</html>
