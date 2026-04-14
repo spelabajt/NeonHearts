@@ -2,7 +2,7 @@
 <html>
 <head>
     <title>Neon Pulse - Level 3</title>
-	<link rel="icon" href="img/icon.png">
+    <link rel="icon" href="../img/icon.png">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
@@ -10,7 +10,8 @@
     <style>
         body { 
             margin: 0; padding: 0; overflow: hidden; 
-            background: #120a2a url('img/ozadje.jpg') no-repeat center center fixed; 
+            /* Popravljena pot do ozadja */
+            background: #120a2a url('../img/ozadje.jpg') no-repeat center center fixed; 
             background-size: cover; font-family: 'Segoe UI', sans-serif; 
             height: 100vh; display: flex; flex-direction: column; 
         }
@@ -71,7 +72,8 @@
     function loadAssets() {
         required.forEach(name => {
             var img = new Image();
-            img.src = 'img_srce/' + name + '.png';
+            // Popravljena pot do map slik
+            img.src = '../img_srce/' + name + '.png';
             img.onload = () => { loadedCount++; };
             heartImgs[name] = img;
         });
@@ -105,7 +107,11 @@
             if (e.keyCode == 39) rightPressed = true;
             else if (e.keyCode == 37) leftPressed = true;
             else if (e.keyCode == 13) startGame();
-            else if (e.keyCode == 32) { e.preventDefault(); stopGame(); }
+            else if (e.keyCode == 32) { 
+                e.preventDefault(); 
+                if (gameRunning) stopGame(); 
+                else startGame();
+            }
             else if (e.keyCode == 38) { if (ballColor === colors.blue) paddleColor = colors.blue; }
             else if (e.keyCode == 40) { if (ballColor === colors.pink) paddleColor = colors.pink; }
         });
@@ -159,7 +165,7 @@
                     
                     if (x + r > bx && x - r < bx + BRICKWIDTH && y + r > by && y - r < by + BRICKHEIGHT) {
                         dy = -dy; 
-                        dy *= 1.02; dx *= 1.02; // Pospeševanje žogice
+                        dy *= 1.02; dx *= 1.02; 
                         b.status = 0; tocke++; $("#tocke").html(tocke);
                         ballColor = (b.imgName === "s1") ? colors.blue : colors.pink;
                         paddleColor = colors.gray; 
@@ -239,7 +245,7 @@
             html: `You mastered Level 3!<br>Points: <span style="color:#00d4ff">${tocke}</span><br>Time: <span style="color:#FF69B4">${izpisTimer}</span>`, 
             icon: 'success', 
             confirmButtonText: 'Main Menu' 
-        }).then(() => { window.location.href = 'index.html'; });
+        }).then(() => { window.location.href = '../index.html'; }); // Popravljena pot
     }
 
     function endGame() { 
@@ -292,7 +298,7 @@
                     <button id="btn-stop" class="btn" onclick="stopGame()">Stop</button>
                     <button id="btn-end" class="btn" onclick="endGame()">End Game</button>
                     <div class="button-row">
-                        <button class="btn btn-green" onclick="window.location.href='index.html'">Home</button>
+                        <button class="btn btn-green" onclick="window.location.href='../index.html'">Home</button>
                         <button class="btn btn-green" onclick="showInstructions()">Instructions</button>
                     </div>
                 </div>
