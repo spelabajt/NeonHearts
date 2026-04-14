@@ -2,7 +2,7 @@
 <html>
 <head>
     <title>Rotating Hearts - Level 2</title>
-	<link rel="icon" href="../img/icon.png">
+    <link rel="icon" href="../img/icon.png">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
@@ -10,6 +10,7 @@
     <style>
         body { 
             margin: 0; padding: 0; overflow: hidden; 
+            /* Popravljena pot do slike ozadja */
             background: #120a2a url('../img/ozadje.jpg') no-repeat center center fixed; 
             background-size: cover; font-family: 'Segoe UI', sans-serif; 
             height: 100vh; display: flex; flex-direction: column; 
@@ -83,7 +84,8 @@
         function loadImages() {
             for (let i = 1; i <= totalImages; i++) {
                 let img = new Image();
-                img.src = 'img_srce/s' + i + '.png';
+                // Popravljena pot do slik kristalnih src
+                img.src = '../img_srce/s' + i + '.png';
                 img.onload = function() { loadedImages++; };
                 crystalImages[i] = img;
             }
@@ -125,7 +127,11 @@
                 if (e.keyCode == 39) rightPressed = true;
                 else if (e.keyCode == 37) leftPressed = true;
                 else if (e.keyCode == 13) startGame();
-                else if (e.keyCode == 32) { e.preventDefault(); stopGame(); }
+                else if (e.keyCode == 32) { 
+                    e.preventDefault(); 
+                    if (gameRunning) stopGame();
+                    else startGame();
+                }
             });
 
             $(document).keyup(function(e) {
