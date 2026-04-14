@@ -2,7 +2,7 @@
 <html>
 <head>
     <title>Hearts Mission - Level 1</title>
-	<link rel="icon" href="../img/icon.png">
+    <link rel="icon" href="../img/icon.png">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
@@ -10,6 +10,7 @@
     <style>
         body { 
             margin: 0; padding: 0; overflow: hidden; 
+            /* Popravljena pot do ozadja v CSS */
             background: #120a2a url('../img/ozadje.jpg') no-repeat center center fixed; 
             background-size: cover; font-family: 'Segoe UI', sans-serif; 
             height: 100vh; display: flex; flex-direction: column; 
@@ -62,9 +63,10 @@
         var imageLoadedCount = 0;
         var totalImages = 5;
 
+        // Popravljena pot do slik src: dodan ../
         for (var i = 1; i <= totalImages; i++) {
             var img = new Image();
-            img.src = 'img_srce/s' + i + '.png';
+            img.src = '../img_srce/s' + i + '.png'; 
             img.onload = function() { imageLoadedCount++; };
             crystalImages.push(img);
         }
@@ -100,13 +102,12 @@
                 }
             });
 
-            // Poslušalci za tipkovnico (Enter in Space dodana tukaj)
             $(document).keydown(function(e) {
                 if (e.keyCode == 39) rightPressed = true;
                 else if (e.keyCode == 37) leftPressed = true;
-                else if (e.keyCode == 13) startGame(); // ENTER tipka
-                else if (e.keyCode == 32) { // SPACE tipka
-                    e.preventDefault(); // Prepreči scroll strani
+                else if (e.keyCode == 13) startGame(); 
+                else if (e.keyCode == 32) { 
+                    e.preventDefault(); 
                     if (gameRunning) stopGame();
                     else startGame();
                 }
@@ -154,11 +155,8 @@
         }
 
         function draw() {
-            if (rightPressed && paddlex < WIDTH - paddlew) {
-                paddlex += 8;
-            } else if (leftPressed && paddlex > 0) {
-                paddlex -= 8;
-            }
+            if (rightPressed && paddlex < WIDTH - paddlew) paddlex += 8;
+            else if (leftPressed && paddlex > 0) paddlex -= 8;
 
             ctx.clearRect(0, 0, WIDTH, HEIGHT);
             drawbricks();
@@ -179,13 +177,9 @@
                         var bx = OFFSET + j * (BRICKWIDTH + PADDING);
                         var by = OFFSET + i * (BRICKHEIGHT + PADDING);
                         if (x + r > bx && x - r < bx + BRICKWIDTH && y + r > by && y - r < by + BRICKHEIGHT) {
-                            dy = -dy;
-                            b.status = 0; 
-                            tocke++; 
-                            $("#tocke").html(tocke);
+                            dy = -dy; b.status = 0; tocke++; $("#tocke").html(tocke);
                             if (preveriZmago()) { winGame(); return; }
-                            hit = true;
-                            break;
+                            hit = true; break;
                         }
                     }
                 }
@@ -198,9 +192,7 @@
                 if (x > paddlex && x < paddlex + paddlew) {
                     dx = 8 * ((x - (paddlex + paddlew / 2)) / paddlew); 
                     dy = -dy;
-                } else if (y + dy > HEIGHT - r) { 
-                    gameOver();
-                }
+                } else if (y + dy > HEIGHT - r) gameOver();
             }
             x += dx; y += dy;
         }
@@ -209,25 +201,21 @@
             if (imageLoadedCount < totalImages) return;
             if (!gameRunning) { 
                 $("#canvas-wrapper").css("display", "flex"); 
-                drawStatic(); 
-                gameRunning = true; 
+                drawStatic(); gameRunning = true; 
                 intervalId = setInterval(draw, 7); 
                 timerId = setInterval(posodobiTimer, 1000); 
             } 
         }
 
         function stopGame() { 
-            gameRunning = false; 
-            clearInterval(intervalId); 
-            clearInterval(timerId); 
+            gameRunning = false; clearInterval(intervalId); clearInterval(timerId); 
         }
         
         function posodobiTimer() { 
             sekunde++; 
             var s = (sekunde % 60).toString().padStart(2, '0');
             var m = Math.floor(sekunde / 60).toString().padStart(2, '0');
-            izpisTimer = m + ":" + s; 
-            $("#cas").html(izpisTimer); 
+            izpisTimer = m + ":" + s; $("#cas").html(izpisTimer); 
         }
         
         function gameOver() { 
@@ -237,6 +225,7 @@
         
         function winGame() {
             stopGame();
+            // c2.html je v isti mapi, zato pot ostane ista
             Swal.fire({ ...swalCustom, title: 'YOU WON!', html: `Points: <span style="color:#00d4ff">${tocke}</span><br>Time: <span style="color:#FF69B4">${izpisTimer}</span>`, icon: 'success', confirmButtonText: 'Next Level' }).then(() => { window.location.href = 'c2.html'; });
         }
 
@@ -246,11 +235,7 @@
         }
 
         function preveriZmago() {
-            for (var i = 0; i < NROWS; i++) {
-                for (var j = 0; j < NCOLS; j++) {
-                    if (bricks[i][j].status == 1) return false;
-                }
-            }
+            for (var i = 0; i < NROWS; i++) for (var j = 0; j < NCOLS; j++) if (bricks[i][j].status == 1) return false;
             return true;
         }
 
