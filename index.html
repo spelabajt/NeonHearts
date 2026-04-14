@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Neon Hearts</title>
-	<link rel="icon" href="img/icon.png">
+    <link rel="icon" href="img/icon.png">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 
@@ -12,6 +12,7 @@
             margin: 0; 
             padding: 0; 
             overflow: hidden; 
+            /* Ozadje je zdaj fiksirano brez premikanja */
             background: #120a2a url('img/ozadje.jpg') no-repeat center center fixed; 
             background-size: cover; 
             font-family: 'Segoe UI', sans-serif; 
@@ -82,7 +83,6 @@
             transform: scale(1.03); 
         }
 
-        /* Level 2 - Modra */
         .level-btn.l2 {
             border-color: #00d4ff;
             color: #00d4ff;
@@ -95,7 +95,6 @@
             box-shadow: 0 0 25px #00d4ff;
         }
 
-        /* Level 3 - Zelena (kot Home gumb) */
         .level-btn.l3 {
             border-color: #2ecc71;
             color: #2ecc71;
@@ -142,11 +141,7 @@
     </div>
 
     <script>
-        $(document).mousemove(function(e) {
-            var moveX = (e.pageX * -1 / 60);
-            var moveY = (e.pageY * -1 / 60);
-            $('body').css('background-position', moveX + 'px ' + moveY + 'px');
-        });
+        // Premikanje ozadja je odstranjeno za boljšo stabilnost slike.
     </script>
 </body>
 </html>
