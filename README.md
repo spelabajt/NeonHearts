@@ -1,10 +1,10 @@
-# 🕹️ Neon Hearts: Crystal Mission
+# Neon Hearts: Crystal Mission
 
 **Neon Hearts** is a retro-futuristic arcade experience built with HTML5, CSS3, and JavaScript. It revives the classic "Brick Breaker" mechanics with a vibrant neon aesthetic, dynamic physics, and multi-layered challenges.
 
 ---
 
-## 🚀 Features
+##  Features
 
 * **Progressive Level Design:**
     * **Level 1 (Hearts Mission):** The classic introduction to crystal shattering.
@@ -16,7 +16,7 @@
 
 ---
 
-## 🎮 How to Play
+##  How to Play
 
 ### Basic Controls
 * **Move:** Use your **Mouse** or **Left/Right Arrow Keys**.
@@ -31,7 +31,7 @@ In the final stage, you must match the ball's color to catch it:
 
 ---
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 * **Frontend:** HTML5 (Canvas API), CSS3 (Flexbox, Animations).
 * **Scripting:** JavaScript (ES6+), jQuery.
@@ -40,7 +40,7 @@ In the final stage, you must match the ball's color to catch it:
 
 ---
 
-## 📂 Project Structure
+##  Project Structure
 
 ```text
 ├── index.html          # Main Menu (Mission Selection)
