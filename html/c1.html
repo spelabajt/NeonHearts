@@ -8,15 +8,39 @@
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 
     <style>
-        body { 
-            margin: 0; padding: 0; overflow: hidden; 
-            /* Popravljena pot do ozadja v CSS */
-            background: #120a2a url('../img/ozadje.jpg') no-repeat center center fixed; 
-            background-size: cover; font-family: 'Segoe UI', sans-serif; 
-            height: 100vh; display: flex; flex-direction: column; 
+        /* KLJUČNI POPRAVEK: Prisili html in body, da ostaneta fiksna */
+        html, body {
+            height: 100% !important;
+            margin: 0;
+            padding: 0 !important;
+            overflow: hidden !important;
         }
 
-        #main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 0 40px; gap: 50px; }
+        /* Prepreči SweetAlertu, da bi vsebino porinil navzgor */
+        html.swal2-shown, body.swal2-shown {
+            height: 100% !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+
+        body { 
+            background: #120a2a url('../img/ozadje.jpg') no-repeat center center fixed; 
+            background-size: cover; 
+            font-family: 'Segoe UI', sans-serif; 
+            display: flex; 
+            flex-direction: column; 
+        }
+
+        #main { 
+            flex: 1; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 0 40px; 
+            gap: 50px; 
+            height: 100%; /* Zagotovi polno višino za centriranje */
+        }
+
         #side-info { width: 350px; display: flex; flex-direction: column; align-items: center; }
         #vmesnik { 
             background: rgba(25, 10, 50, 0.85); padding: 20px 30px 40px 30px; 
@@ -48,22 +72,16 @@
         #canvas { display: block; background: hsl(250, 25%, 12%); border: 4px solid hsl(300, 70%, 55%); cursor: none; border-radius: 20px; box-shadow: 0 0 30px rgba(0, 0, 0, 0.5); }
     </style>
 
-<script type="application/javascript">
+    <script type="application/javascript">
         var ctx, canvas, WIDTH, HEIGHT, intervalId, timerId;
         var x, y, dx, dy, r, paddlex;
         var paddleh = 15, paddlew = 200; 
         var bricks, NROWS = 4, NCOLS = 12, BRICKWIDTH, BRICKHEIGHT, PADDING = 10;
         var OFFSET = 20;
         var gameRunning = false, sekunde = 0, tocke = 0, izpisTimer = "00:00";
-        
-        var rightPressed = false;
-        var leftPressed = false;
+        var rightPressed = false, leftPressed = false;
+        var crystalImages = [], imageLoadedCount = 0, totalImages = 5;
 
-        var crystalImages = [];
-        var imageLoadedCount = 0;
-        var totalImages = 5;
-
-        // Popravljena pot do slik src: dodan ../
         for (var i = 1; i <= totalImages; i++) {
             var img = new Image();
             img.src = '../img_srce/s' + i + '.png'; 
@@ -76,7 +94,9 @@
             color: '#fff', 
             confirmButtonColor: '#8A2BE2', 
             backdrop: 'rgba(0,0,0,0.8)', 
-            iconColor: '#FF69B4' 
+            iconColor: '#FF69B4',
+            scrollbarPadding: false,
+            heightAuto: false // PREPREČI avtomatsko spreminjanje višine html elementa
         };
 
         function drawIt() {
@@ -85,10 +105,8 @@
             x = vx / 2; y = vy - 150; dx = 2; dy = -4; r = 10;
             canvas = document.getElementById('canvas'); 
             ctx = canvas.getContext('2d');
-            canvas.width = vx; 
-            canvas.height = vy; 
-            WIDTH = canvas.width; 
-            HEIGHT = canvas.height;
+            canvas.width = vx; canvas.height = vy; 
+            WIDTH = canvas.width; HEIGHT = canvas.height;
             BRICKWIDTH = ((WIDTH - 2 * OFFSET) / NCOLS) - PADDING; 
             BRICKHEIGHT = BRICKWIDTH; 
             paddlex = WIDTH / 2 - paddlew / 2;
@@ -144,14 +162,8 @@
         function drawStatic() {
             ctx.clearRect(0, 0, WIDTH, HEIGHT);
             drawbricks();
-            ctx.beginPath(); 
-            ctx.fillStyle = "#FF69B4"; 
-            ctx.arc(x, y, r, 0, Math.PI * 2); 
-            ctx.fill();
-            ctx.beginPath(); 
-            ctx.fillStyle = "#8A2BE2"; 
-            ctx.roundRect(paddlex, HEIGHT - paddleh, paddlew, paddleh, 10); 
-            ctx.fill();
+            ctx.beginPath(); ctx.fillStyle = "#FF69B4"; ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.fillStyle = "#8A2BE2"; ctx.roundRect(paddlex, HEIGHT - paddleh, paddlew, paddleh, 10); ctx.fill();
         }
 
         function draw() {
@@ -160,14 +172,8 @@
 
             ctx.clearRect(0, 0, WIDTH, HEIGHT);
             drawbricks();
-            ctx.beginPath(); 
-            ctx.fillStyle = "#FF69B4"; 
-            ctx.arc(x, y, r, 0, Math.PI * 2); 
-            ctx.fill();
-            ctx.beginPath(); 
-            ctx.fillStyle = "#8A2BE2"; 
-            ctx.roundRect(paddlex, HEIGHT - paddleh, paddlew, paddleh, 10); 
-            ctx.fill();
+            ctx.beginPath(); ctx.fillStyle = "#FF69B4"; ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.fillStyle = "#8A2BE2"; ctx.roundRect(paddlex, HEIGHT - paddleh, paddlew, paddleh, 10); ctx.fill();
 
             var hit = false;
             for (var i = 0; i < NROWS; i++) {
@@ -190,8 +196,7 @@
             if (y + dy < r) dy = -dy;
             else if (y + dy > HEIGHT - r - paddleh) {
                 if (x > paddlex && x < paddlex + paddlew) {
-                    dx = 8 * ((x - (paddlex + paddlew / 2)) / paddlew); 
-                    dy = -dy;
+                    dx = 8 * ((x - (paddlex + paddlew / 2)) / paddlew); dy = -dy;
                 } else if (y + dy > HEIGHT - r) gameOver();
             }
             x += dx; y += dy;
@@ -225,7 +230,6 @@
         
         function winGame() {
             stopGame();
-            // c2.html je v isti mapi, zato pot ostane ista
             Swal.fire({ ...swalCustom, title: 'YOU WON!', html: `Points: <span style="color:#00d4ff">${tocke}</span><br>Time: <span style="color:#FF69B4">${izpisTimer}</span>`, icon: 'success', confirmButtonText: 'Next Level' }).then(() => { window.location.href = 'c2.html'; });
         }
 
@@ -246,28 +250,32 @@
                 icon: 'info',
                 iconColor: '#2ecc71',
                 html: `
-                    <div style="text-align: left; font-size: 16px; line-height: 1.6;">
-                        * Move the <b>paddle</b> with your mouse or <b>arrow keys</b>.<br>
-                        * Press <b>ENTER</b> to start the game.<br>
-                        * Press <b>SPACE</b> to pause or continue.<br>
-                        * Bounce the ball to destroy all <b>crystal hearts</b>.<br>
-                        * Don't let the ball fall below the paddle!<br>
-                        <span id="secret-credit" style="cursor: pointer;">* Clear the screen to advance to the next level.</span>
+                    <div style="text-align: left; display: flex; justify-content: center;">
+                        <div style="max-width: 85%; line-height: 1.8; font-size: 16px;">
+                            * Move the <b>paddle</b> with your mouse or <b>arrow keys</b>.<br>
+                            * Press <b>ENTER</b> to start the game.<br>
+                            * Press <b>SPACE</b> to pause or continue.<br>
+                            * Bounce the ball to destroy all <b>crystal hearts</b>.<br>
+                            * Don't let the ball fall below the paddle!<br>
+                            <span id="secret-credit" style="cursor: pointer;">
+                                * Clear the screen to advance to the next level.
+                            </span>
+                        </div>
                     </div>`,
                 confirmButtonText: 'Got it!',
-                confirmButtonColor: '#2ecc71',
-                didOpen: () => {
-                    document.getElementById('secret-credit').addEventListener('click', () => {
-                        Swal.fire({
-                            ...swalCustom,
-                            title: 'Developer',
-                            text: 'Špela Bajt',
-                            icon: 'success',
-                            iconColor: '#2ecc71',
-                            confirmButtonColor: '#2ecc71'
-                        });
-                    });
-                }
+                confirmButtonColor: '#2ecc71'
+            });
+
+            // Uporabimo delegacijo dogodkov za klik na skrivni kredit
+            $(document).off('click', '#secret-credit').on('click', '#secret-credit', function() {
+                Swal.fire({
+                    ...swalCustom,
+                    title: 'Developer',
+                    text: 'Špela Bajt',
+                    icon: 'success',
+                    iconColor: '#2ecc71',
+                    confirmButtonColor: '#2ecc71'
+                });
             });
         }
     </script>
