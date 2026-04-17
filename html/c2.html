@@ -8,14 +8,32 @@
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 
     <style>
+        /* KLJUČNI POPRAVEK: Prisili html in body, da ostaneta fiksna na sredini */
+        html, body {
+            height: 100% !important;
+            margin: 0;
+            padding: 0 !important;
+            overflow: hidden !important;
+        }
+
+        /* Prepreči SweetAlertu, da bi vsebino porinil navzgor */
+        html.swal2-shown, body.swal2-shown {
+            height: 100% !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+
         body { 
-            margin: 0; padding: 0; overflow: hidden; 
-            /* Popravljena pot do slike ozadja */
             background: #120a2a url('../img/ozadje.jpg') no-repeat center center fixed; 
             background-size: cover; font-family: 'Segoe UI', sans-serif; 
-            height: 100vh; display: flex; flex-direction: column; 
+            display: flex; flex-direction: column; 
         }
-        #main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 0 40px; gap: 50px; }
+
+        #main { 
+            flex: 1; display: flex; align-items: center; justify-content: center; 
+            padding: 0 40px; gap: 50px; height: 100%;
+        }
+
         #side-info { width: 350px; display: flex; flex-direction: column; align-items: center; }
         #vmesnik { 
             background: rgba(25, 10, 50, 0.85); padding: 20px 30px 40px 30px; 
@@ -23,48 +41,27 @@
             box-shadow: 0 0 20px rgba(181, 109, 255, 0.3); 
             border: 1px solid rgba(181, 109, 255, 0.4); backdrop-filter: blur(5px); 
         }
+
         #naslov { color: #b56dff; font-size: 40px; font-family: "Orbitron", sans-serif; text-shadow: 0 0 10px #8A2BE2, 0 0 20px #b56dff; margin-bottom: 30px; letter-spacing: 2px; }
         .stat-row { font-size: 22px; margin: 15px 0; font-family: "Orbitron", sans-serif; }
         #cas-box { border: 1px solid #FF69B4; color: #FF69B4; background: rgba(0,0,0,0.5); padding: 5px 15px; border-radius: 8px; display: inline-block; min-width: 80px; }
         #tocke-box { border: 1px solid #00d4ff; color: #00d4ff; background: rgba(0,0,0,0.5); padding: 5px 15px; border-radius: 8px; display: inline-block; min-width: 80px; }
         
         #controls { margin-top: 30px; display: flex; flex-direction: column; gap: 15px; }
-
-        .btn { 
-            padding: 12px 25px; 
-            font-size: 18px; 
-            font-family: "Orbitron", sans-serif; 
-            font-weight: bold; 
-            background: transparent; 
-            border-radius: 30px; 
-            cursor: pointer; 
-            transition: all 0.3s ease; 
-            text-transform: uppercase; 
-            outline: none; 
-            border: 2px solid;
-        }
-
-        #btn-start { border-color: #b56dff; color: #b56dff; }
-        #btn-start:hover { background: #b56dff; color: white; box-shadow: 0 0 15px #b56dff; transform: translateY(-2px); }
-
+        .btn { padding: 12px 25px; font-size: 18px; font-family: "Orbitron", sans-serif; font-weight: bold; background: transparent; border: 2px solid #b56dff; color: #b56dff; border-radius: 30px; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; outline: none; }
+        .btn:hover { background: #b56dff; color: white; box-shadow: 0 0 15px #b56dff; transform: translateY(-2px); }
+        
         #btn-stop { border-color: #00d4ff; color: #00d4ff; }
-        #btn-stop:hover { background: #00d4ff; color: #120a2a; box-shadow: 0 0 15px #00d4ff; transform: translateY(-2px); }
-
+        #btn-stop:hover { background: #00d4ff; color: #120a2a; }
         #btn-end { border-color: #FF69B4; color: #FF69B4; }
-        #btn-end:hover { background: #FF69B4; color: white; box-shadow: 0 0 15px #FF69B4; transform: translateY(-2px); }
+        #btn-end:hover { background: #FF69B4; color: white; }
 
         .btn-green { border-color: #2ecc71; color: #2ecc71; }
-        .btn-green:hover { background: #2ecc71; color: #120a2a; box-shadow: 0 0 15px #2ecc71; transform: translateY(-2px); }
+        .btn-green:hover { background: #2ecc71; color: #120a2a; box-shadow: 0 0 15px #2ecc71; }
         .button-row { display: flex; gap: 10px; width: 100%; }
         .button-row .btn { flex: 1; padding: 10px 5px; font-size: 14px; }
 
-        #canvas-wrapper { 
-            padding: 20px; 
-            background: rgba(181, 109, 255, 0.1); 
-            border-radius: 30px; 
-            display: none; 
-        }
-        
+        #canvas-wrapper { padding: 20px; background: rgba(181, 109, 255, 0.1); border-radius: 30px; display: none; align-items: center; justify-content: center; }
         #canvas { display: block; background: hsl(250, 25%, 12%); border: 4px solid hsl(300, 70%, 55%); cursor: none; border-radius: 20px; box-shadow: 0 0 30px rgba(0, 0, 0, 0.5); }
     </style>
 
@@ -75,16 +72,12 @@
         var bricks, NROWS = 4, NCOLS = 12, BRICKWIDTH, BRICKHEIGHT, PADDING = 15;
         var OFFSET = 20; 
         var gameRunning = false, sekunde = 0, tocke = 0, izpisTimer = "00:00";
-        
         var rightPressed = false, leftPressed = false;
-        var crystalImages = {};
-        var loadedImages = 0;
-        const totalImages = 4;
+        var crystalImages = {}, loadedImages = 0, totalImages = 4;
 
         function loadImages() {
             for (let i = 1; i <= totalImages; i++) {
                 let img = new Image();
-                // Popravljena pot do slik kristalnih src
                 img.src = '../img_srce/s' + i + '.png';
                 img.onload = function() { loadedImages++; };
                 crystalImages[i] = img;
@@ -95,7 +88,9 @@
             background: 'rgba(25, 10, 50, 0.95)', 
             color: '#fff', 
             confirmButtonColor: '#8A2BE2', 
-            backdrop: 'rgba(0,0,0,0.8)'
+            backdrop: 'rgba(0,0,0,0.8)',
+            scrollbarPadding: false,
+            heightAuto: false
         };
 
         function drawIt() {
@@ -103,15 +98,11 @@
             ctx = canvas.getContext('2d');
             WIDTH = window.innerWidth - 800; 
             HEIGHT = window.innerHeight - 200;
-            canvas.width = WIDTH; 
-            canvas.height = HEIGHT;
-
+            canvas.width = WIDTH; canvas.height = HEIGHT;
             BRICKWIDTH = ((WIDTH - (2 * OFFSET)) / NCOLS) - PADDING; 
             BRICKHEIGHT = BRICKWIDTH; 
-            
             x = WIDTH / 2; y = HEIGHT - 100; dx = 3; dy = -5; r = 10;
             paddlex = WIDTH / 2 - paddlew / 2;
-
             initbricks();
             loadImages();
             
@@ -122,18 +113,15 @@
                     paddlex = relativeX - paddlew / 2; 
                 }
             });
-
             $(document).keydown(function(e) {
                 if (e.keyCode == 39) rightPressed = true;
                 else if (e.keyCode == 37) leftPressed = true;
                 else if (e.keyCode == 13) startGame();
                 else if (e.keyCode == 32) { 
                     e.preventDefault(); 
-                    if (gameRunning) stopGame();
-                    else startGame();
+                    if (gameRunning) stopGame(); else startGame();
                 }
             });
-
             $(document).keyup(function(e) {
                 if (e.keyCode == 39) rightPressed = false;
                 else if (e.keyCode == 37) leftPressed = false;
@@ -180,10 +168,8 @@
         function draw() {
             if (rightPressed && paddlex < WIDTH - paddlew) paddlex += 8;
             else if (leftPressed && paddlex > 0) paddlex -= 8;
-
             ctx.clearRect(0, 0, WIDTH, HEIGHT);
             drawbricks();
-            
             ctx.beginPath(); ctx.fillStyle = "#FF69B4"; ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
             ctx.beginPath(); ctx.fillStyle = "#8A2BE2"; ctx.roundRect(paddlex, HEIGHT - paddleh, paddlew, paddleh, 10); ctx.fill();
 
@@ -216,11 +202,10 @@
 
         function startGame() { 
             if (!gameRunning) { 
-                $("#canvas-wrapper").show(); drawStatic(); gameRunning = true; 
+                $("#canvas-wrapper").css("display", "flex"); drawStatic(); gameRunning = true; 
                 intervalId = setInterval(draw, 10); timerId = setInterval(posodobiTimer, 1000); 
             } 
         }
-
         function stopGame() { gameRunning = false; clearInterval(intervalId); clearInterval(timerId); }
 
         function posodobiTimer() { 
@@ -237,69 +222,51 @@
 
         function gameOver() { 
             stopGame(); 
-            Swal.fire({ 
-                ...swalCustom, 
-                title: 'Game ended', 
-                html: `Points: <span style="color:#00d4ff">${tocke}</span><br>Time: <span style="color:#FF69B4">${izpisTimer}</span>`, 
-                icon: 'error', 
-                iconColor: '#FF69B4', 
-                confirmButtonText: 'Try Again' 
-            }).then(() => { location.reload(); }); 
+            Swal.fire({ ...swalCustom, title: 'Game ended', html: `Points: <span style="color:#00d4ff">${tocke}</span><br>Time: <span style="color:#FF69B4">${izpisTimer}</span>`, icon: 'error' }).then(() => { location.reload(); }); 
         }
         
         function winGame() {
             stopGame();
-            Swal.fire({ 
-                ...swalCustom, 
-                title: 'YOU WON!', 
-                html: `Points: <span style="color:#00d4ff">${tocke}</span><br>Time: <span style="color:#FF69B4">${izpisTimer}</span>`, 
-                icon: 'success', 
-                iconColor: '#2ecc71',
-                confirmButtonText: 'Next Level' 
-            }).then((result) => { 
-                if (result.isConfirmed) window.location.href = 'c3.html'; 
-            });
+            Swal.fire({ ...swalCustom, title: 'YOU WON!', html: `Points: <span style="color:#00d4ff">${tocke}</span><br>Time: <span style="color:#FF69B4">${izpisTimer}</span>`, icon: 'success' }).then((res) => { if (res.isConfirmed) window.location.href = 'c3.html'; });
         }
 
         function endGame() { 
             stopGame(); 
-            Swal.fire({ 
-                ...swalCustom, 
-                title: 'Game ended', 
-                html: `Points: <span style="color:#00d4ff">${tocke}</span><br>Time: <span style="color:#FF69B4">${izpisTimer}</span>`, 
-                icon: 'info', 
-                iconColor: '#00d4ff',
-                confirmButtonText: 'Restart' 
-            }).then(() => { location.reload(); }); 
+            Swal.fire({ ...swalCustom, title: 'Game ended', html: `Points: <span style="color:#00d4ff">${tocke}</span><br>Time: <span style="color:#FF69B4">${izpisTimer}</span>`, icon: 'info' }).then(() => { location.reload(); }); 
         }
 
         function showInstructions() {
             Swal.fire({
-                ...swalCustom, 
-                title: 'INSTRUCTIONS', 
-                icon: 'info', 
+                ...swalCustom,
+                title: 'INSTRUCTIONS',
+                icon: 'info',
                 iconColor: '#2ecc71',
-                html: `<div style="text-align: left; font-size: 16px; line-height: 1.6;">
-                        * Move the <b>paddle</b> with your mouse or <b>arrow keys</b>.<br>
-                        * Press <b>ENTER</b> to start the game.<br>
-                        * Press <b>SPACE</b> to pause.<br>
-                        * Clear all hearts to advance!<br>
-                        <span id="secret-credit" style="cursor: pointer;">* Rotating hearts require more focus.</span>
+                html: `
+                    <div style="text-align: left; display: flex; justify-content: center;">
+                        <div style="max-width: 85%; line-height: 1.8; font-size: 16px;">
+                            * Move the <b>paddle</b> with your mouse or <b>arrow keys</b>.<br>
+                            * Press <b>ENTER</b> to start the game.<br>
+                            * Press <b>SPACE</b> to pause or continue.<br>
+                            * Bounce the ball to destroy all <b>crystal hearts</b>.<br>
+                            * Don't let the ball fall below the paddle!<br>
+                            <span id="secret-credit" style="cursor: pointer;">
+                                * Clear the screen to advance to the next level.
+                            </span>
+                        </div>
                     </div>`,
-                confirmButtonText: 'Got it!', 
-                confirmButtonColor: '#2ecc71',
-                didOpen: () => {
-                    document.getElementById('secret-credit').addEventListener('click', () => {
-                        Swal.fire({
-                            ...swalCustom,
-                            title: 'Developer',
-                            text: 'Špela Bajt',
-                            icon: 'success',
-                            iconColor: '#2ecc71',
-                            confirmButtonColor: '#2ecc71'
-                        });
-                    });
-                }
+                confirmButtonText: 'Got it!',
+                confirmButtonColor: '#2ecc71'
+            });
+
+            $(document).off('click', '#secret-credit').on('click', '#secret-credit', function() {
+                Swal.fire({
+                    ...swalCustom,
+                    title: 'Developer',
+                    text: 'Špela Bajt',
+                    icon: 'success',
+                    iconColor: '#2ecc71',
+                    confirmButtonColor: '#2ecc71'
+                });
             });
         }
     </script>
