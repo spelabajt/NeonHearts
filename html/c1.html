@@ -273,9 +273,15 @@
         function winGame() {
             stopGame();
             let user = localStorage.getItem('activeUser') || "GOST";
-            localStorage.setItem("hmission_tocke_" + user + "_l1", tocke);
-            localStorage.setItem("hmission_sekunde_" + user + "_l1", sekunde);
             
+            // Shranimo za statistiko
+            localStorage.setItem("hmission_tocke_" + user + "_l1", tocke);
+            
+            // KLJUČNO: Shranimo v skupni ključ za prenos v naslednji nivo
+            localStorage.setItem("hmission_tocke", tocke); 
+            localStorage.setItem("hmission_sekunde", sekunde);
+            localStorage.setItem("unlockedLevel", "2");
+        
             Swal.fire({ 
                 ...swalCustom, 
                 title: 'Level 1 Won!', 
