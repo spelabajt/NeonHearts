@@ -42,6 +42,11 @@
         
         var shranjeneTocke = parseInt(localStorage.getItem("hmission_tocke")) || 0;
         var shranjeneSekunde = parseInt(localStorage.getItem("hmission_sekunde")) || 0;
+        
+        var gameRunning = false;
+        var sekunde = shranjeneSekunde; // Zdaj dejansko uporabi shranjen čas
+        var tocke = shranjeneTocke;     // Zdaj dejansko uporabi shranjene točke
+        var izpisTimer = "00:00";
 
         var gameRunning = false, sekunde = shranjeneSekunde, tocke = shranjeneTocke, izpisTimer = "00:00";
         var rightPressed = false, leftPressed = false;
@@ -214,16 +219,17 @@
 
         // CHEAT FUNKCIJA ZA LEVEL 2
         function cheatWin() {
-            // Točke med 120 in 180
-            tocke = Math.floor(Math.random() * (180 - 120 + 1)) + 120;
-            $("#tocke").html(tocke);
-            
-            // Čas natanko 2.6 min (156 sekund)
-            sekunde = 156;
-            posodobiIzpisTimerja(); 
-            
-            winGame();
-        }
+    // Namesto Math.random() + 120, uporabi dejanske točke iz L1 + bonus
+    let bonusTocke = 10; 
+    tocke = shranjeneTocke + bonusTocke;
+    $("#tocke").html(tocke);
+    
+    // Namesto sekunde = 156, uporabi sekunde iz L1 + nekaj dodatka
+    sekunde = shranjeneSekunde + 5; 
+    posodobiIzpisTimerja(); 
+    
+    winGame();
+}
 
         function gameOver() { 
     stopGame(); 
