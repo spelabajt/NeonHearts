@@ -270,27 +270,26 @@
     }); 
 }
 
-        function winGame() {
-            stopGame();
-            let user = localStorage.getItem('activeUser') || "GOST";
-            
-            // Shranimo za statistiko
-            localStorage.setItem("hmission_tocke_" + user + "_l1", tocke);
-            
-            // KLJUČNO: Shranimo v skupni ključ za prenos v naslednji nivo
-            localStorage.setItem("hmission_tocke", tocke); 
-            localStorage.setItem("hmission_sekunde", sekunde);
-            localStorage.setItem("unlockedLevel", "2");
-        
-            Swal.fire({ 
-                ...swalCustom, 
-                title: 'Level 1 Won!', 
-                html: `Points: <span style="color:#00d4ff">${tocke}</span><br>Time: <span style="color:#FF69B4">${izpisTimer}</span>`, 
-                icon: 'success', 
-                confirmButtonText: 'NEXT LEVEL'
-            }).then(() => { window.location.href = 'c2.html'; });
-        }
+       function winGame() {
+    stopGame();
+    let user = localStorage.getItem('activeUser') || "GOST";
+    
+    // Shranjevanje za prenos v Level 2
+    localStorage.setItem("hmission_tocke", tocke); 
+    localStorage.setItem("hmission_sekunde", sekunde);
+    
+    // Shranjevanje za tvojo statistiko
+    localStorage.setItem("hmission_tocke_" + user + "_l1", tocke);
+    localStorage.setItem("hmission_sekunde_" + user + "_l1", sekunde);
 
+    Swal.fire({ 
+        ...swalCustom, 
+        title: 'Level 1 Won!', 
+        html: `Points: <span style="color:#00d4ff">${tocke}</span><br>Time: <span style="color:#FF69B4">${izpisTimer}</span>`, 
+        icon: 'success', 
+        confirmButtonText: 'NEXT LEVEL'
+    }).then(() => { window.location.href = 'c2.html'; });
+}
         function preveriZmago() { for (var i = 0; i < NROWS; i++) for (var j = 0; j < NCOLS; j++) if (bricks[i][j].status == 1) return false; return true; }
         
         function showInstructions() {
