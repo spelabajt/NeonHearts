@@ -66,21 +66,22 @@
         var gameRunning = false, sekunde = 0, tocke = 0, izpisTimer = "00:00";
         var crystalImages = [], imageLoadedCount = 0, totalImages = 5;
 
-        // --- ZVOK KONFIGURACIJA ---
+        // --- NOVO: Spremenljivke za tipkovnico ---
+        var rightPressed = false;
+        var leftPressed = false;
+
         var bgMusic = new Audio('../music/BackM.m4a');
         bgMusic.loop = true;
-        bgMusic.volume = 0.02; // Prilagodi glasnost ozadja, da bo tišja od udarca
+        bgMusic.volume = 0.02;
 
         var hitSoundEffect = new Audio('../music/zogica.m4a');
         hitSoundEffect.preload = 'auto';
 
         function playHitSound() {
-            // Ustvarimo klon, da se zvoki lahko prekrivajo, če žogica zadane več srčkov hkrati
             var sound = hitSoundEffect.cloneNode();
-            sound.volume = 0.9; // Glasneje od ozadja
+            sound.volume = 0.9;
             sound.play().catch(e => console.log("Zvok blokiran"));
         }
-        // --------------------------
 
         for (var i = 1; i <= totalImages; i++) {
             var img = new Image();
@@ -100,15 +101,23 @@
             x = WIDTH / 2; y = HEIGHT - 50; dx = 2; dy = -4; r = 10;
             initbricks();
             
+            // --- NOVO: Poslušalci za tipke ---
+            $(document).keydown(function(e) {
+                if (e.keyCode == 39) rightPressed = true;
+                if (e.keyCode == 37) leftPressed = true;
+                if (e.keyCode == 32) { e.preventDefault(); togglePause(); }
+                if (e.keyCode == 13) { startGame(); }
+            });
+
+            $(document).keyup(function(e) {
+                if (e.keyCode == 39) rightPressed = false;
+                if (e.keyCode == 37) leftPressed = false;
+            });
+
             $(document).mousemove(function(e) {
                 if(!gameRunning) return;
                 var relativeX = e.pageX - $(canvas).offset().left;
                 if (relativeX > paddlew / 2 && relativeX < WIDTH - paddlew / 2) paddlex = relativeX - paddlew / 2;
-            });
-
-            $(document).keydown(function(e) {
-                if (e.keyCode == 32) { e.preventDefault(); togglePause(); }
-                if (e.keyCode == 13) { startGame(); }
             });
         }
 
@@ -163,6 +172,13 @@
         }
 
         function draw() {
+            // --- NOVO: Premikanje ploščadi s tipkami ---
+            if (rightPressed && paddlex < WIDTH - paddlew) {
+                paddlex += 8;
+            } else if (leftPressed && paddlex > 0) {
+                paddlex -= 8;
+            }
+
             drawStatic(); 
             if (x + dx > WIDTH - r || x + dx < r) dx = -dx;
             if (y + dy < r) dy = -dy;
@@ -186,9 +202,7 @@
                             b.status = 0; 
                             tocke++; 
                             $("#tocke").html(tocke);
-                            
-                            playHitSound(); // KLIC ZVOKA OB ZADETKU
-
+                            playHitSound();
                             if (preveriZmago()) { winGame(); return; }
                             hitDetected = true; break;
                         }
@@ -203,13 +217,9 @@
             if (!gameRunning) { 
                 $("#canvas-wrapper").css("display", "flex"); 
                 gameRunning = true; 
-                
-                // Zaženi glasbo ob štartu
                 bgMusic.play().catch(e => {
-                    // Fail-safe za brskalnike
                     $(document).one('mousedown', function() { bgMusic.play(); });
                 });
-
                 clearInterval(intervalId);
                 clearInterval(timerId);
                 intervalId = setInterval(draw, 10); 
@@ -221,7 +231,6 @@
             gameRunning = false; 
             clearInterval(intervalId); 
             clearInterval(timerId); 
-            // bgMusic.pause(); // Odkomentiraj, če želiš, da se glasba ustavi ob pavzi
         }
         
         function posodobiTimer() { sekunde++; posodobiIzpisTimerja(); }
@@ -234,69 +243,61 @@
         }
 
         function cheatWin() {
-            tocke = 48;
-            $("#tocke").html(tocke);
-            sekunde = 10;
-            posodobiIzpisTimerja(); 
+            tocke = 48; $("#tocke").html(tocke);
+            sekunde = 10; posodobiIzpisTimerja(); 
             winGame();
         }
 
         function gameOver() { 
-    stopGame(); 
-    // Pridobimo aktivnega uporabnika
-    let user = localStorage.getItem('activeUser') || "GOST";
-    
-    // Shranimo točke specifično za tega uporabnika in ta nivo
-    localStorage.setItem("hmission_tocke_" + user + "_l1", tocke);
-    localStorage.setItem("hmission_sekunde_" + user + "_l1", sekunde);
+            stopGame(); 
+            let user = localStorage.getItem('activeUser') || "GOST";
+            localStorage.setItem("hmission_tocke_" + user + "_l1", tocke);
+            localStorage.setItem("hmission_sekunde_" + user + "_l1", sekunde);
 
-    Swal.fire({ 
-        ...swalCustom, 
-        title: 'GAME OVER', 
-        html: `Total Points: <span style="color:#00d4ff">${tocke}</span><br>Total Time: <span style="color:#FF69B4">${izpisTimer}</span>`, 
-        icon: 'error',
-        iconColor: '#ff69b4',
-        showCancelButton: true,
-        confirmButtonText: 'TRY AGAIN',
-        cancelButtonText: 'HOME',
-        cancelButtonColor: '#00d4ff',
-        reverseButtons: true
-    }).then((result) => { 
-        if (result.isConfirmed) {
-            location.reload(); 
-        } else {
-            window.location.href = '../index.html'; 
+            Swal.fire({ 
+                ...swalCustom, 
+                title: 'GAME OVER', 
+                html: `Total Points: <span style="color:#00d4ff">${tocke}</span><br>Total Time: <span style="color:#FF69B4">${izpisTimer}</span>`, 
+                icon: 'error',
+                iconColor: '#ff69b4',
+                showCancelButton: true,
+                confirmButtonText: 'TRY AGAIN',
+                cancelButtonText: 'HOME',
+                cancelButtonColor: '#00d4ff',
+                reverseButtons: true
+            }).then((result) => { 
+                if (result.isConfirmed) {
+                    location.reload(); 
+                } else {
+                    window.location.href = '../index.html'; 
+                }
+            }); 
         }
-    }); 
-}
 
-       function winGame() {
-    stopGame();
-    let user = localStorage.getItem('activeUser') || "GOST";
-    
-    // Shranjevanje za prenos v Level 2
-    localStorage.setItem("hmission_tocke", tocke); 
-    localStorage.setItem("hmission_sekunde", sekunde);
-    
-    // Shranjevanje za tvojo statistiko
-    localStorage.setItem("hmission_tocke_" + user + "_l1", tocke);
-    localStorage.setItem("hmission_sekunde_" + user + "_l1", sekunde);
+        function winGame() {
+            stopGame();
+            let user = localStorage.getItem('activeUser') || "GOST";
+            localStorage.setItem("hmission_tocke", tocke); 
+            localStorage.setItem("hmission_sekunde", sekunde);
+            localStorage.setItem("hmission_tocke_" + user + "_l1", tocke);
+            localStorage.setItem("hmission_sekunde_" + user + "_l1", sekunde);
 
-    Swal.fire({ 
-        ...swalCustom, 
-        title: 'Level 1 Won!', 
-        html: `Points: <span style="color:#00d4ff">${tocke}</span><br>Time: <span style="color:#FF69B4">${izpisTimer}</span>`, 
-        icon: 'success', 
-        confirmButtonText: 'NEXT LEVEL'
-    }).then(() => { window.location.href = 'c2.html'; });
-}
+            Swal.fire({ 
+                ...swalCustom, 
+                title: 'Level 1 Won!', 
+                html: `Points: <span style="color:#00d4ff">${tocke}</span><br>Time: <span style="color:#FF69B4">${izpisTimer}</span>`, 
+                icon: 'success', 
+                confirmButtonText: 'NEXT LEVEL'
+            }).then(() => { window.location.href = 'c2.html'; });
+        }
+
         function preveriZmago() { for (var i = 0; i < NROWS; i++) for (var j = 0; j < NCOLS; j++) if (bricks[i][j].status == 1) return false; return true; }
         
         function showInstructions() {
             Swal.fire({
                 ...swalCustom, title: 'INSTRUCTIONS', icon: 'info',
                 html: `<div style="text-align: left; font-size: 16px; line-height: 1.6;">
-                        * Move with <b>mouse</b>.<br>
+                        * Move with <b>mouse</b> or <b>arrows (&larr; &rarr;)</b>.<br>
                         * <b>ENTER</b> to start, <b>SPACE</b> to pause.<br>
                         * Destroy all <b>hearts</b>.<br>
                         * Don't let the ball fall!</div>`,
