@@ -303,14 +303,13 @@
                 * Move with <b>mouse</b> or <b>arrows (&larr; &rarr;)</b>.<br>
                 * <b>ENTER</b> to start, <b>SPACE</b> to pause.<br>
                 * Destroy all <b>hearts</b>.<br>
-                <div id="author-click" style="cursor: pointer; color: #3498db; text-decoration: underline;">
-                    * Don't let the ball fall! (klikni me)
+                <div id="author-click" style="cursor: default;">
+                    * Don't let the ball fall!
                 </div>
                </div>`,
         confirmButtonText: 'Got it!',
         confirmButtonColor: '#2ecc71',
         didOpen: () => {
-            // Ko se alert odpre, poiščemo naš element in mu dodamo klik dogodek
             const authorBtn = document.getElementById('author-click');
             authorBtn.addEventListener('click', () => {
                 Swal.fire({
