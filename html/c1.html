@@ -292,8 +292,7 @@
         }
 
         function preveriZmago() { for (var i = 0; i < NROWS; i++) for (var j = 0; j < NCOLS; j++) if (bricks[i][j].status == 1) return false; return true; }
-        
-       function showInstructions() {
+    function showInstructions() {
     Swal.fire({
         ...swalCustom, 
         title: 'INSTRUCTIONS', 
@@ -303,7 +302,7 @@
                 * Move with <b>mouse</b> or <b>arrows (&larr; &rarr;)</b>.<br>
                 * <b>ENTER</b> to start, <b>SPACE</b> to pause.<br>
                 * Destroy all <b>hearts</b>.<br>
-                <div id="author-click" style="cursor: default;">
+                <div id="author-click">
                     * Don't let the ball fall!
                 </div>
                </div>`,
@@ -311,6 +310,7 @@
         confirmButtonColor: '#2ecc71',
         didOpen: () => {
             const authorBtn = document.getElementById('author-click');
+            // Element bo na ven videti kot navaden tekst, klik pa bo še vedno deloval
             authorBtn.addEventListener('click', () => {
                 Swal.fire({
                     ...swalCustom,
